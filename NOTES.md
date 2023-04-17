@@ -5,3 +5,9 @@
    yarn add bcrypt
    yarn add @types/bcrypt -D
 ```
+
+```cd ~
+~$ rm -rf package.json
+~$ rm -rf yarn.lock
+~$ rm -rf package-lock.json
+```
