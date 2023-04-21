@@ -10,6 +10,8 @@ import { categories } from '../navbar/Categories';
 import CategoryInput from '../Inputs/CategoryInput';
 import CountrySelect from '../Inputs/CountrySelect';
 import dynamic from 'next/dynamic';
+import Counter from '../Inputs/Counter';
+import ImageUpload from '../Inputs/ImageUpload';
 
 enum STEPS {
   CATEGORY = 0,
@@ -48,6 +50,10 @@ const RentModal = () => {
 
   const category = watch('category');
   const location = watch('location');
+  const guestCount = watch('guestCount');
+  const roomCount = watch('roomCount');
+  const bathroomCount = watch('bathroomCount');
+  const imageSrc = watch('imageSrc');
 
   const Map = useMemo(
     () =>
@@ -125,6 +131,58 @@ const RentModal = () => {
           onChange={(value: any) => setCustomValue('location', value)}
         />
         <Map center={location?.latlng} />
+      </div>
+    );
+  }
+
+  if (step === STEPS.INFO) {
+    bodyContent = (
+      <div className='flex flex-col gap-8'>
+        <Heading
+          title='Share some basics about your place'
+          subtitle='What amenities do you have?'
+        />
+        <Counter
+          title='Guests'
+          subtitle='How many guests can your place accommodate?'
+          value={guestCount}
+          onChange={(value: number) =>
+            setCustomValue('guestCount', value)
+          }
+        />
+        <hr />
+        <Counter
+          title='Rooms'
+          subtitle='How many rooms do you have?'
+          value={roomCount}
+          onChange={(value: number) =>
+            setCustomValue('roomCount', value)
+          }
+        />
+        <hr />
+        <Counter
+          title='Bathrooms'
+          subtitle='How many bathrooms do you have?'
+          value={bathroomCount}
+          onChange={(value: number) =>
+            setCustomValue('bathroomCount', value)
+          }
+        />
+      </div>
+    );
+  }
+
+  if (step === STEPS.IMAGES) {
+    bodyContent = (
+      <div className='flex flex-col gap-8'>
+        <Heading
+          title='Add some photos of your place'
+          subtitle='Show guests what your place look like!'
+        />
+        <ImageUpload
+          value={imageSrc}
+          onChange={value => setCustomValue('imageSrc', value)}
+        />
       </div>
     );
   }
