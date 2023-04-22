@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { FieldValues, useForm } from 'react-hook-form';
+import { useRouter } from 'next/navigation';
+import { FieldValues, SubmitHandler, useForm } from 'react-hook-form';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 import useRentModal from '@/app/hooks/useRentModal';
 import Modal from './Modal';
@@ -12,6 +15,8 @@ import CountrySelect from '../Inputs/CountrySelect';
 import dynamic from 'next/dynamic';
 import Counter from '../Inputs/Counter';
 import ImageUpload from '../Inputs/ImageUpload';
+import Input from '../Inputs/Input';
+import L from 'leaflet';
 
 enum STEPS {
   CATEGORY = 0,
@@ -23,9 +28,11 @@ enum STEPS {
 }
 
 const RentModal = () => {
+  const router = useRouter();
   const rentModal = useRentModal();
 
   const [step, setStep] = useState(STEPS.CATEGORY);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -54,6 +61,7 @@ const RentModal = () => {
   const roomCount = watch('roomCount');
   const bathroomCount = watch('bathroomCount');
   const imageSrc = watch('imageSrc');
+  const price = watch('price');
 
   const Map = useMemo(
     () =>
@@ -80,6 +88,36 @@ const RentModal = () => {
     setStep(prev => prev + 1);
   };
 
+  const onSubmit: SubmitHandler<FieldValues> = async data => {
+    if (step !== STEPS.PRICE) {
+      return onNext();
+    }
+
+    if (price < 1) {
+      return toast.error('Price must be greater than 0');
+    }
+
+    setIsLoading(true);
+
+    axios
+      .post('/api/listings', data)
+      .then(() => {
+        //setIsLoading(false);
+        toast.success('Listing created!');
+        router.refresh();
+        reset();
+        setStep(STEPS.CATEGORY);
+        rentModal.onClose();
+      })
+      .catch(err => {
+        console.error(err);
+        toast.error('Something went wrong!');
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
   const actionLabel = useMemo(() => {
     if (step === STEPS.PRICE) {
       return 'Create';
@@ -104,7 +142,7 @@ const RentModal = () => {
       />
       <div className='grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto'>
         {categories.map(item => (
-          <div key={category.label} className='col-span-1'>
+          <div key={item.label} className='col-span-1'>
             <CategoryInput
               onClick={(category: string) =>
                 setCustomValue('category', category)
@@ -187,10 +225,67 @@ const RentModal = () => {
     );
   }
 
+  if (step === STEPS.DESCRIPTION) {
+    bodyContent = (
+      <div className='flex flex-col gap-8'>
+        <Heading
+          title='Describe your place'
+          subtitle='What makes your place unique?'
+        />
+        <Input
+          id='title'
+          label='Title'
+          disabled={isLoading}
+          register={register}
+          errors={errors}
+          required
+        />
+        <hr />
+        <Input
+          id='description'
+          label='Description'
+          disabled={isLoading}
+          register={register}
+          errors={errors}
+          required
+        />
+
+        {/* <textarea
+          className='p-3 border border-gray-200 rounded-md'
+          placeholder='Description'
+          {...register('description', {
+            required: 'Description is required',
+          })}
+        /> */}
+      </div>
+    );
+  }
+
+  if (step === STEPS.PRICE) {
+    bodyContent = (
+      <div className='flex flex-col gap-8'>
+        <Heading
+          title='Set your price'
+          subtitle='How much do you want to charge?'
+        />
+        <Input
+          id='price'
+          label='Price'
+          formatPrice
+          type='number'
+          disabled={isLoading}
+          register={register}
+          errors={errors}
+          required
+        />
+      </div>
+    );
+  }
+
   return (
     <Modal
       isOpen={rentModal.isOpen}
-      onSubmit={onNext}
+      onSubmit={handleSubmit(onSubmit)}
       onClose={rentModal.onClose}
       actionLabel={actionLabel}
       secondaryActionLabel={secondaryActionLabel}
