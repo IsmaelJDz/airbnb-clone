@@ -1,17 +1,23 @@
 'use client';
 
-import React, { useCallback, useMemo } from 'react';
+import React, {
+  ReactEventHandler,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import { format } from 'date-fns';
 import useCountries from '@/app/hooks/useCountries';
-import { SafeUser } from '@/app/types';
-import { Listing, Reservation } from '@prisma/client';
+import { SafeListing, SafeUser } from '@/app/types';
+import { Reservation } from '@prisma/client';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import HeartButton from '../HeartButton';
 import Button from '../Button';
+import SkeletonImage from '../SkeletonImage';
 
 interface ListingCardProps {
-  data: Listing;
+  data: SafeListing;
   reservation?: Reservation;
   onAction?: (id: string) => void;
   disabled?: boolean;
@@ -29,10 +35,16 @@ const ListingCard: React.FC<ListingCardProps> = ({
   actionId = '',
   currentUser,
 }) => {
+  const [isImageReady, setIsImageReady] = useState(false);
+
   const router = useRouter();
   const { getByValue } = useCountries();
 
   const location = getByValue(data.locationValue);
+
+  const onLoadCallBack = () => {
+    setIsImageReady(true);
+  };
 
   const handleCancel = useCallback(() => {
     (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -71,12 +83,28 @@ const ListingCard: React.FC<ListingCardProps> = ({
       className='col-span-1 cursor-pointer group'>
       <div className='flex flex-col w-full gap-2'>
         <div className='relative w-full overflow-hidden aspect-square rounded-xl'>
-          <Image
-            fill
-            alt='Listing'
-            src={data.imageSrc}
-            className='object-cover w-full h-full transition group-hover:scale-110'
-          />
+          <div>
+            {!isImageReady && <SkeletonImage />}
+            <Image
+              onLoad={onLoadCallBack}
+              fill
+              alt='Listing'
+              src={data.imageSrc}
+              className='object-cover w-full h-full transition group-hover:scale-110'
+            />
+          </div>
+
+          {/* <Image
+            className='image'
+            src={image.src}
+            alt={image.alt}
+            layout='fill'
+            objectFit='cover'
+            objectPosition='top center'
+            placeholder='blur'
+            blurDataURL='/images/blur.jpg'
+          /> */}
+
           <div className='absolute top-3 right-3'>
             <HeartButton
               listingId={data.id}
