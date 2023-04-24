@@ -40,7 +40,7 @@ Features:
 ### Cloning the repository
 
 ```shell
-git clone https://github.com/AntonioErdeljac/next13-airbnb-clone.git
+git clone https://github.com/IsmaelJDz/airbnb-clone.git
 ```
 
 ### Install packages
