@@ -8,8 +8,7 @@ import React, {
 } from 'react';
 import { format } from 'date-fns';
 import useCountries from '@/app/hooks/useCountries';
-import { SafeListing, SafeUser } from '@/app/types';
-import { Reservation } from '@prisma/client';
+import { SafeListing, SafeReservations, SafeUser } from '@/app/types';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import HeartButton from '../HeartButton';
@@ -18,7 +17,7 @@ import SkeletonImage from '../SkeletonImage';
 
 interface ListingCardProps {
   data: SafeListing;
-  reservation?: Reservation;
+  reservation?: SafeReservations;
   onAction?: (id: string) => void;
   disabled?: boolean;
   actionLabel?: string;
@@ -46,7 +45,7 @@ const ListingCard: React.FC<ListingCardProps> = ({
     setIsImageReady(true);
   };
 
-  const handleCancel = useCallback(() => {
+  const handleCancel = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
 
@@ -55,8 +54,9 @@ const ListingCard: React.FC<ListingCardProps> = ({
       }
 
       onAction?.(actionId);
-    };
-  }, [onAction, actionId, disabled]);
+    },
+    [disabled, onAction, actionId]
+  );
 
   const price = useMemo(() => {
     if (reservation) {
